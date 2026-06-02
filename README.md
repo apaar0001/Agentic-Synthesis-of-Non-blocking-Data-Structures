@@ -21,6 +21,8 @@ NBAgents-LLM-enabled-Workflows-for-Non-blocking-Data-Structures/
 ├── prompts/                  # Baseline prompts (CSV) for various data structures
 ├── references/               # Ground-truth implementations and structural annotations
 ├── tools/                    # ReAct agent tools (compilation, testing, storage, logging)
+├── generated_codes/          # Organized C++ and Java generated codes (zero-shot and translation)
+├── zero_shot_big_model/      # Outputs and analysis from large chat agents (zero-shot & in-context)
 ├── extended_codebleu.py      # Extended CodeBLEU multi-layer evaluation script
 ├── java_react_runner.py      # Main entry point for Java ReAct pipeline
 ├── java_zero_shot_runner.py  # Main entry point for Java Zero-shot pipeline
