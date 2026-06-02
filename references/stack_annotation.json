@@ -1,0 +1,40 @@
+{
+    "data_structure": "stack",
+    "paradigm": "lock-free",
+    "required_keywords": [
+        "push",
+        "pop",
+        "isEmpty",
+        "compareAndSet",
+        "AtomicReference",
+        "StackADT",
+        "Pop victim point"
+    ],
+    "forbidden_keywords": [
+        "synchronized",
+        "ReentrantLock",
+        "Lock",
+        "Semaphore",
+        "wait()",
+        "notify()",
+        "notifyAll()"
+    ],
+    "expected_primitives": [
+        "AtomicReference",
+        "compareAndSet"
+    ],
+    "expected_imports": [
+        "java.util.concurrent.atomic"
+    ],
+    "node_structure": {
+        "required_fields": [
+            "val",
+            "next"
+        ],
+        "field_types": {
+            "next": "AtomicReference"
+        }
+    },
+    "description": "Lock-free LIFO stack using Treiber's algorithm. Top pointer is AtomicReference<Node>. push() and pop() use CAS on top.",
+    "scoring_notes": "Layer C pool will be populated when reference implementations are collected."
+}

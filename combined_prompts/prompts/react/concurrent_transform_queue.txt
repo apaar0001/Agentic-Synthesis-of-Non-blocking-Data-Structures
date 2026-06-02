@@ -1,0 +1,40 @@
+=== CONCURRENT TRANSFORMATION PROMPT (Queue Variant) ===
+
+Now convert the sequential queue implementation (JAVA code) you wrote above into a lock-free/non-blocking concurrent version using CAS (Michael-Scott Queue style).
+
+Output Requirement: Provide only the concurrent code implementation with the class name ConcurrentDataStructure. No explanations, no extra text.
+The ConcurrentDataStructure class MUST have a no-argument constructor (e.g., `public ConcurrentDataStructure()`).
+
+Lock-Free Implementation Instructions:
+No Locks Allowed
+Do not use synchronized blocks or ReentrantLock.
+
+Algorithm — Michael-Scott Lock-Free Queue:
+Use two AtomicReference fields: head and tail, both pointing to Node objects.
+Initialize with a sentinel (dummy) node: head = tail = new Node(-1).
+enqueue(int val): Atomically swing the tail pointer forward using CAS. Help lagging tail pointers.
+dequeue(): Atomically swing the head pointer forward using CAS. Return -1 if the queue is logically empty (head.next == null after sentinel).
+isEmpty(): Return true when head.get().next == null (the sentinel has no successor).
+
+Structural Requirement:
+The Node class must hold an int value field and an AtomicReference<Node> next field (matching the sequential node structure). No AtomicMarkableReference needed.
+
+Linearizability Requirement:
+Every enqueue/dequeue must appear to take effect at a single instant.
+The linearization point of dequeue() is the successful CAS that advances the head sentinel.
+Ensure all CAS retry loops make progress and never spin indefinitely on a fixed state.
+
+IMPORTANT — Linearization Comment:
+Inside dequeue(), immediately after the successful CAS that advances the head (the line that atomically removes the front node), add exactly this comment on the next line:
+// Dequeue victim point
+Do NOT place this comment on a failure path, inside a retry loop body before the CAS, or after any unrelated statement.
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or comments in the code (except the above mentioned comment).
+
+API Contract (QueueADT Interface):
+package com.example.utils;
+public interface QueueADT {
+\tvoid enqueue(int val);
+\tint dequeue();     // returns -1 if empty
+\tboolean isEmpty();
+}
+Ensure that the generated code implements the QueueADT interface.\

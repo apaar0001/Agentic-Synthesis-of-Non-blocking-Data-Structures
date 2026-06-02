@@ -1,0 +1,38 @@
+{
+  "data_structure": "linked_list",
+  "language": "cpp",
+  "paradigm": "lock-free",
+  "atomic_fields": {
+    "primary_class": "std::atomic",
+    "alt_classes": [
+      "atomic_load",
+      "atomic_store",
+      "compare_exchange_strong",
+      "compare_exchange_weak"
+    ]
+  },
+  "required_keywords": [
+    "compare_exchange_(strong|weak)",
+    "std::atomic",
+    "contains|add|remove",
+    "head|sentinel",
+    "next",
+    "uintptr_t|is_marked|marked"
+  ],
+  "forbidden_keywords": [
+    "std::mutex",
+    "std::lock_guard",
+    "std::unique_lock",
+    "std::shared_lock",
+    "std::recursive_mutex"
+  ],
+  "structural_invariants": {
+    "has_sentinel_head": true,
+    "node_has_next_field": true,
+    "uses_mark_bit_for_deletion": true,
+    "find_does_physical_cleanup": true,
+    "has_cas_operation": true,
+    "has_atomic_pointer": true
+  },
+  "description": "Lock-free sorted linked list (Harris / Valois style). Nodes are marked for logical deletion before physical unlink. CAS on next pointer includes mark bit via uintptr_t bit manipulation."
+}

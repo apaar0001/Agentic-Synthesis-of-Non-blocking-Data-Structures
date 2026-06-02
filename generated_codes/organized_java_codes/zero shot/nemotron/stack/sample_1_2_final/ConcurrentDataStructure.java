@@ -1,0 +1,50 @@
+package com.example.Sets;
+import com.example.utils.StackADT;
+import java.util.concurrent.atomic.AtomicReference;
+
+public class ConcurrentDataStructure implements StackADT {
+    private final AtomicReference<Node> top = new AtomicReference<>(null);
+
+    public ConcurrentDataStructure() { }
+
+    @Override
+    public void push(int val) {
+        Node newNode = new Node(val);
+        while (true) {
+            Node current = top.get();
+            newNode.next = current;
+            if (top.compareAndSet(current, newNode)) {
+                return;
+            }
+        }
+    }
+
+    @Override
+    public int pop() {
+        while (true) {
+            Node current = top.get();
+            if (current == null) {
+                return -1;
+            }
+            Node next = current.next;
+            if (top.compareAndSet(current, next)) {
+                // Pop victim point
+                return current.value;
+            }
+        }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return top.get() == null;
+    }
+
+    private static class Node {
+        final int value;
+        final Node next;
+        Node(int value) {
+            this.value = value;
+            this.next = null;
+        }
+    }
+}

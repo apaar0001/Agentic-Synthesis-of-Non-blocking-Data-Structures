@@ -1,0 +1,60 @@
+{
+    "ds_name": "quad_tree",
+    "algorithm": "Lock-Free Point-Region Quad Tree (CAS on child array)",
+    "reference_paper": "Custom — CAS-based spatial tree",
+    "progress_guarantee": "LOCK_FREE",
+    "atomic_fields": {
+        "required": [
+            "children"
+        ],
+        "atomic_class": "AtomicReference",
+        "note": "children is an AtomicReference<Node>[] of length 4 (NW, NE, SW, SE)"
+    },
+    "aba_protection": {
+        "mechanism": "DELETED_SENTINEL_NODE",
+        "java_class": "AtomicReference",
+        "note": "A DELETED sentinel object replaces removed nodes to prevent ABA on re-insert"
+    },
+    "linearization_points": {
+        "add": "successful CAS on children[quadrant] inserting new leaf",
+        "contains": "read of leaf.key at the bottom of quadrant traversal",
+        "remove": "successful CAS replacing leaf node with DELETED sentinel"
+    },
+    "required_keywords": [
+        "compareAndSet",
+        "AtomicReference",
+        "children",
+        "quadrant",
+        "NW|NE|SW|SE",
+        "minX|maxX|minY|maxY"
+    ],
+    "forbidden_keywords": [
+        "synchronized",
+        "ReentrantLock",
+        "lock()",
+        "unlock()",
+        "next",
+        "left",
+        "right"
+    ],
+    "structural_invariants": {
+        "node_has_four_children": true,
+        "children_are_atomic_references": true,
+        "has_spatial_bounds_or_coordinates": true,
+        "has_quadrant_selection_logic": true,
+        "node_has_no_left_right_fields": true,
+        "has_deleted_sentinel_or_mark": true
+    },
+    "lp_comment_markers": [
+        "LINEARIZATION POINT",
+        "// LP:",
+        "linearization"
+    ],
+    "score_weights": {
+        "atomic_class_match": 0.20,
+        "required_keywords_match": 0.25,
+        "forbidden_keywords_absent": 0.10,
+        "structural_invariants": 0.30,
+        "lp_comments_present": 0.15
+    }
+}

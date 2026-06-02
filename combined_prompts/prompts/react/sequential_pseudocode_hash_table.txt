@@ -1,0 +1,105 @@
+=== SEQUENTIAL PSEUDOCODE PROMPT: hash_table ===
+
+You are an expert Java code generation assistant. Your task is to implement a simple sequential data structure using a sequential, node-based approach. The final code must be written in Java.
+
+The main data structure class, which you will create, must implement the com.example.utils.SetADT interface provided below. This requires you to provide concrete implementations for the add(int key), remove(int key), and contains(int key) methods. The underlying structure will be a sequence of nodes, where each node holds an integer key and a reference to the next node.
+The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+SetADT Interface Definition
+
+The generated class must implement the following Java interface. Ensure the method signatures and return types match exactly.
+
+Java
+
+package com.example.utils;
+
+/***
+ * A simple set interface working with integer keys.
+ */
+public interface SetADT {
+    boolean add(int key);
+    boolean remove(int key);
+    boolean contains(int key);
+}
+Pseudocode for Implementation
+
+Use the following pseudocode as a reference for your Java implementation. The logic must correctly handle the boolean return types as specified by the SetADT interface (e.g., return false if trying to add a duplicate key).
+Code snippet: 
+
+CLASS Node
+    int key
+    Node next
+END CLASS
+CLASS DataStructure
+    int capacity
+    Node[] buckets
+END CLASS
+FUNCTION DataStructure(cap)
+    capacity ← cap
+    buckets ← new Node[capacity]
+
+    FOR i ← 0 TO capacity-1
+        buckets[i] ← NULL
+    END FOR
+END FUNCTION
+FUNCTION hash(key)
+    RETURN ABS(key) MOD capacity
+END FUNCTION
+FUNCTION add(key)
+
+    index ← hash(key)
+    curr ← buckets[index]
+
+    // Check if key already exists
+    WHILE curr ≠ NULL
+        IF curr.key == key
+            RETURN false
+        END IF
+        curr ← curr.next
+    END WHILE
+
+    // Insert at head
+    newNode ← new Node
+    newNode.key ← key
+    newNode.next ← buckets[index]
+
+    buckets[index] ← newNode
+
+    RETURN true
+END FUNCTION
+FUNCTION remove(key)
+
+    index ← hash(key)
+
+    curr ← buckets[index]
+    prev ← NULL
+
+    WHILE curr ≠ NULL
+
+        IF curr.key == key
+
+            IF prev == NULL
+                buckets[index] ← curr.next
+            ELSE
+                prev.next ← curr.next
+            END IF
+
+            RETURN true
+        END IF
+
+        prev ← curr
+        curr ← curr.next
+
+    END WHILE
+
+    RETURN false
+END FUNCTION
+
+Output Requirements
+
+The final generated Java code must not include the words "HashTable" or "Hash" in any class names, method names, variable names, or comments.
+
+The main class name must be SequentialDataStructure (mandatory).
+
+The SequentialDataStructure class MUST have a no-argument constructor (e.g., `public SequentialDataStructure()`).
+
+Output only the Java code — no additional text, explanations, or comments outside the code.

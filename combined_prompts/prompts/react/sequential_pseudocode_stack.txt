@@ -1,0 +1,61 @@
+=== SEQUENTIAL PSEUDOCODE PROMPT: stack ===
+
+You are an expert Java code generation assistant. Your task is to implement a simple sequential data structure using a sequential, node-based approach. The final code must be written in Java.
+
+The main data structure class, which you will create, must implement the com.example.utils.StackADT interface provided below. This requires you to provide concrete implementations for the push(int val), pop(), and isEmpty() methods. The underlying structure will be a sequence of nodes, where each node holds an integer key and a reference to the next node.
+
+The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+
+The generated class must implement the following Java interface. Ensure the method signatures and return types match exactly.
+
+StackADT Interface Definition:
+
+package com.example.utils;
+public interface StackADT {
+    void push(int val);
+    int pop();         // returns -1 if empty
+    boolean isEmpty();
+}
+
+Pseudocode for Implementation:
+
+Use the following pseudocode as a reference for your Java implementation. The logic must correctly handle the boolean return types as specified by the StackADT interface (e.g., return false if trying to add a duplicate key).
+
+Code snippet:
+Class SequentialDataStructure Implements StackADT:
+    // Initialize the stack
+    Method InitializeStack():
+        // Create an empty structure to represent the stack
+        top = null           // Points to the top of the stack
+
+    // Push: Add an element to the top of the stack
+    Method push(val):
+        // Create a new node to hold the value
+        newNode = new Node(val)
+        newNode.next = top   // Set the new node's next to the current top
+        top = newNode        // Move the top to the new node
+        Print "Element added to stack"
+
+    // Pop: Remove and return the element from the top of the stack
+    Method pop():
+        If top == null:
+            Print "Stack is empty"
+            Return -1         // Return -1 if the stack is empty
+        End If
+        val = top.value      // Get the value at the top
+        top = top.next       // Move top to the next node
+        Return val           // Return the popped value
+
+    // IsEmpty: Check if the stack is empty
+    Method isEmpty():
+        Return top == null   // Returns true if the stack is empty, else false
+
+Output Requirements:
+
+The final generated Java code must not include the words "Stack" in any class names, method names, variable names, or comments.
+
+The main class name must be SequentialDataStructure (mandatory).
+
+The SequentialDataStructure class MUST have a no-argument constructor (e.g., `public SequentialDataStructure()`).
+
+Output only the Java code — no additional text, explanations, or comments outside the code.

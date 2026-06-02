@@ -1,0 +1,9 @@
+=== REPROMPT A (Consistency Failure) — stack ===
+
+The concurrent stack implementation given by you before is not linearizable — push/pop counts are inconsistent.
+
+Revise the implementation. Ensure:
+- push() atomically links the new node via CAS on the top pointer.
+- pop() atomically advances the top pointer via CAS and returns the value.
+- The // Pop victim point comment appears immediately after the successful CAS that removes the top node (success path only, not on failure/retry paths).
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or long comments in the code.

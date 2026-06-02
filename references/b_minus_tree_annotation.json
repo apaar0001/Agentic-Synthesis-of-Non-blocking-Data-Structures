@@ -1,0 +1,51 @@
+{
+    "ds_name": "b_minus_tree",
+    "atomic_fields": {
+        "primary_class": "AtomicReference",
+        "alt_classes": [
+            "AtomicReferenceFieldUpdater"
+        ],
+        "required_fields": [
+            "record",
+            "children",
+            "keys"
+        ]
+    },
+    "required_keywords": [
+        "compareAndSet",
+        "AtomicReference|AtomicReferenceFieldUpdater",
+        "keys|entries",
+        "children|child",
+        "isLeaf|leaf|isInternal",
+        "MAX_KEYS|maxKeys|order|degree",
+        "split|merge|redistribute"
+    ],
+    "forbidden_keywords": [
+        "synchronized",
+        "ReentrantLock",
+        "lock()",
+        "unlock()",
+        "wait(",
+        "notify(",
+        "notifyAll(",
+        "Semaphore",
+        "CountDownLatch",
+        "AtomicMarkableReference",
+        "next"
+    ],
+    "structural_invariants": {
+        "has_isLeaf_or_leaf_flag": true,
+        "node_has_keys_array_or_list": true,
+        "node_has_children_array_or_list": true,
+        "has_order_or_max_keys_constant": true,
+        "uses_immutable_record_or_snapshot": true,
+        "has_downward_traversal": true,
+        "find_does_physical_cleanup": true
+    },
+    "annotation_score_weights": {
+        "atomic_class_match": 0.25,
+        "required_keywords_match": 0.35,
+        "forbidden_keywords_absent": 0.20,
+        "structural_invariants": 0.20
+    }
+}

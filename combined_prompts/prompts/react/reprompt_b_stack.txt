@@ -1,0 +1,15 @@
+=== REPROMPT B (Lock-Freedom Failure) — stack ===
+
+The concurrent stack implementation given by you before fails when a thread stalls inside pop() — it is NOT lock-free.
+
+In a lock-free Treiber stack, all threads must be able to make progress even when one stalls.
+
+Common causes:
+- Missing CAS retry loop in pop() — must retry until CAS succeeds or stack is empty.
+- Shared mutable state other than the top AtomicReference.
+
+Fix the implementation so stalled threads do not block others.
+
+Reminder: add // Pop victim point immediately after the successful CAS that removes the top node (success path only — not on retry paths).
+Provide the complete fixed ConcurrentDataStructure.java.
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or long comments in the code.

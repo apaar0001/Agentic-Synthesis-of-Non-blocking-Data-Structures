@@ -1,0 +1,51 @@
+{
+    "ds_name": "binary_search_tree",
+    "atomic_fields": {
+        "primary_class": "AtomicReference",
+        "alt_classes": [
+            "AtomicStampedReference",
+            "AtomicReferenceFieldUpdater"
+        ],
+        "required_fields": [
+            "left",
+            "right"
+        ]
+    },
+    "required_keywords": [
+        "compareAndSet",
+        "AtomicReference|AtomicStampedReference",
+        "left",
+        "right",
+        "compareTo|compareKey|key <|key >",
+        "search|find|lookup",
+        "Info|Update|Flag|IInfo|DInfo"
+    ],
+    "forbidden_keywords": [
+        "synchronized",
+        "ReentrantLock",
+        "lock()",
+        "unlock()",
+        "wait(",
+        "notify(",
+        "notifyAll(",
+        "Semaphore",
+        "CountDownLatch",
+        "AtomicMarkableReference",
+        "next"
+    ],
+    "structural_invariants": {
+        "node_has_left_field": true,
+        "node_has_right_field": true,
+        "node_has_no_next_field": true,
+        "has_key_comparison_logic": true,
+        "has_downward_traversal": true,
+        "has_leaf_and_internal_distinction": true,
+        "find_does_physical_cleanup": true
+    },
+    "annotation_score_weights": {
+        "atomic_class_match": 0.25,
+        "required_keywords_match": 0.35,
+        "forbidden_keywords_absent": 0.20,
+        "structural_invariants": 0.20
+    }
+}

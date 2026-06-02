@@ -1,0 +1,170 @@
+=== FEW-SHOT PROMPT: prompt_bst_cpp ===
+
+You are a world-class expert in concurrent systems and lock-free data structures in C++. You specialize in implementing lock-free and wait-free data structures using std::atomic and CAS operations. When asked to implement a concurrent data structure, you produce complete, production-quality C++17 code with no explanations or extra text.
+- Use std::atomic<T*> with compare_exchange_strong/weak for all atomic updates
+- Implement marked pointer helpers for logical deletion
+- Use explicit memory ordering (acquire/release/acq_rel/relaxed)
+- Implement proper RAII destructors to prevent memory leaks
+- Avoid ALL locking primitives (std::mutex, std::lock_guard, etc.)
+- Ensure linearizability and lock-freedom
+- Handle all edge cases (empty structure, concurrent modifications)
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or long comments. Output ONLY the C++ code in a single .hpp file.
+
+You are given few-shot examples in the following format:
+
+* `seq1 -> conc1`
+* `seq2 -> conc2`
+* `seq3 -> conc3`
+
+Each pair contains:
+
+1. A sequential C++ implementation of a data structure.
+2. Its corresponding concurrent C++ implementation.
+
+These examples show the expected conversion style, coding pattern, class structure, comments, and concurrency design.
+
+You are then given:
+
+* `seq4`
+
+Your task is to convert `seq4` into:
+
+* `conc4`
+
+That means: generate the complete concurrent C++ implementation corresponding to the given sequential C++ implementation `seq4`.
+
+Few-shot input/output format are attached
+
+seq1
+```cpp
+// Sequential Linked List (Omitted for brevity)
+```
+
+conc1
+```cpp
+// Lock-free Linked List (Omitted for brevity)
+```
+
+seq2
+```cpp
+// Sequential Skip List (Omitted for brevity)
+```
+
+conc2
+```cpp
+// Lock-free Skip List (Omitted for brevity)
+```
+
+seq3
+```cpp
+// Sequential Hash Table (Omitted for brevity)
+```
+
+conc3
+```cpp
+// Lock-free Hash Table (Omitted for brevity)
+```
+
+seq4
+```cpp
+// Sequential BST (Omitted for brevity)
+```
+
+Act as a concurrent data structure expert. Implement a lock-free binary search tree (BST) in C++17 that implements the following interface:
+
+#pragma once
+
+class SetADT {
+public:
+    virtual ~SetADT() = default;
+    virtual bool contains(int key) = 0;
+    virtual bool add(int key) = 0;
+    virtual bool remove(int key) = 0;
+};
+
+The BST must maintain the standard BST invariant: left child key < parent key < right child key.
+
+The Node class must have:
+  - An integer val field
+  - A std::atomic<Node*> left child pointer
+  - A std::atomic<Node*> right child pointer
+
+Lock-Free C++17 Implementation Requirements:
+
+1. NO LOCKS: Do not use std::mutex, std::lock_guard, std::unique_lock, or any blocking primitives.
+
+2. ATOMIC OPERATIONS: Use std::atomic<T*> for all shared pointers with CAS loops.
+   - Use compare_exchange_strong() or compare_exchange_weak() for atomic updates
+   - Example: node->next.compare_exchange_strong(expected, desired, std::memory_order_acq_rel)
+
+3. MARKED POINTERS: Implement marked pointer helpers for logical deletion:
+   ```cpp
+   static bool is_marked_ref(Node* p) {
+       return (reinterpret_cast<uintptr_t>(p) & 1L) != 0;
+   }
+   static Node* get_unmarked_ref(Node* p) {
+       return reinterpret_cast<Node*>(reinterpret_cast<uintptr_t>(p) & ~1L);
+   }
+   static Node* get_marked_ref(Node* p) {
+       return reinterpret_cast<Node*>(reinterpret_cast<uintptr_t>(p) | 1L);
+   }
+   ```
+
+4. MEMORY ORDERING: Use explicit memory ordering for all atomic operations:
+   - std::memory_order_acquire for loads that synchronize with stores
+   - std::memory_order_release for stores that other threads will observe
+   - std::memory_order_acq_rel for read-modify-write operations (CAS)
+   - std::memory_order_relaxed for operations that don't need synchronization
+
+5. LOGICAL DELETION: For remove(), first logically mark the node, then physically unlink:
+   - Mark the node's next pointer using get_marked_ref()
+   - CAS to set the marked pointer
+   - Skip marked nodes during traversal
+   - Never use a marked node as a predecessor for CAS
+
+6. RAII MEMORY MANAGEMENT: Implement a proper destructor that:
+   - Traverses the entire structure
+   - Uses get_unmarked_ref() to handle marked pointers
+   - Deletes all allocated nodes
+   - Prevents memory leaks
+
+7. SENTINEL NODES: Use sentinel nodes with INT_MIN and INT_MAX to simplify edge cases:
+   - Include <climits> for INT_MIN and INT_MAX
+   - Initialize head to point to sentinel nodes in constructor
+
+8. CLASS NAME: The implementation class MUST be named exactly ConcurrentDataStructure.
+
+9. SINGLE-FILE IMPLEMENTATION: All code must be in a single .hpp file:
+   - Include #pragma once at the top
+   - Include necessary headers: <atomic>, <climits>, <cstdint>
+   - Include "../utils/SetADT.hpp"
+   - Define the class and all methods inline
+
+10. LINEARIZABILITY: Each operation must appear atomic at a single linearization point.
+    - The linearization point is typically the successful CAS operation
+    - Skip/help-remove marked nodes during traversal
+
+11. LOCK-FREEDOM: System-wide progress must be guaranteed even if threads stall.
+
+12. OUTPUT: Return ONLY the C++ code in a single .hpp file, no explanations, no markdown.
+
+13. CONSTRUCTOR: Include a no-argument constructor that initializes the data structure.
+
+Additional BST requirements:
+- Use marked pointers for logical deletion of nodes
+- Implement a search helper that finds the parent and target node
+- Handle concurrent insertions and deletions at the same location
+- Use CAS on parent's child pointer to atomically link/unlink nodes
+- Consider using internal nodes and leaf nodes pattern for better concurrency
+
+Required includes:
+```cpp
+#pragma once
+#include "../utils/SetADT.hpp"
+#include <atomic>
+#include <climits>
+#include <cstdint>
+```
+
+Implement the complete C++ class ConcurrentDataStructure in a single .hpp file.
+The class must inherit from SetADT and override all three methods: contains(), add(), and remove().

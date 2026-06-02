@@ -1,0 +1,39 @@
+{
+  "data_structure": "skiplist",
+  "language": "cpp",
+  "paradigm": "lock-free",
+  "atomic_fields": {
+    "primary_class": "std::atomic",
+    "alt_classes": [
+      "compare_exchange_strong",
+      "compare_exchange_weak",
+      "atomic_load",
+      "atomic_store"
+    ]
+  },
+  "required_keywords": [
+    "compare_exchange_(strong|weak)",
+    "std::atomic",
+    "level|height|maxLevel|NUM_LEVELS",
+    "next|forward",
+    "head|sentinel",
+    "contains|add|remove|insert|search"
+  ],
+  "forbidden_keywords": [
+    "std::mutex",
+    "std::lock_guard",
+    "std::unique_lock",
+    "std::shared_lock",
+    "std::recursive_mutex"
+  ],
+  "structural_invariants": {
+    "has_sentinel_head": true,
+    "node_has_next_field": true,
+    "has_level_or_height_field": true,
+    "node_has_next_array_or_multi": true,
+    "find_does_physical_cleanup": true,
+    "has_cas_operation": true,
+    "has_atomic_pointer": true
+  },
+  "description": "Lock-free skip list with multiple levels. Nodes have an array of atomic next pointers (one per level). Logical deletion via mark bit; physical cleanup during find/add/remove traversal."
+}

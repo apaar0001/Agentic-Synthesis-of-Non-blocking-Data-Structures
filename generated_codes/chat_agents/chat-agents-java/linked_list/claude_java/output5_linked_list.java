@@ -1,0 +1,117 @@
+package com.example.Sets;
+
+import com.example.utils.SetADT;
+import java.util.concurrent.atomic.AtomicMarkableReference;
+
+public class ConcurrentDataStructure implements SetADT {
+
+    private static class Node {
+        final int key;
+        final AtomicMarkableReference<Node> next;
+
+        Node(int key, Node next) {
+            this.key = key;
+            this.next = new AtomicMarkableReference<>(next, false);
+        }
+    }
+
+    private final Node head;
+    private final Node tail;
+
+    public ConcurrentDataStructure() {
+        tail = new Node(Integer.MAX_VALUE, null);
+        head = new Node(Integer.MIN_VALUE, tail);
+    }
+
+    private static class Window {
+        final Node pred;
+        final Node curr;
+        Window(Node pred, Node curr) {
+            this.pred = pred;
+            this.curr = curr;
+        }
+    }
+
+    private Window find(int key) {
+        Node pred, curr, succ;
+        boolean[] marked = {false};
+
+        retry:
+        while (true) {
+            pred = head;
+            curr = pred.next.getReference();
+
+            while (true) {
+                succ = curr.next.get(marked);
+
+                while (marked[0]) {
+                    boolean snip = pred.next.compareAndSet(curr, succ, false, false);
+                    if (!snip) continue retry;
+                    curr = succ;
+                    succ = curr.next.get(marked);
+                }
+
+                if (curr.key >= key) {
+                    return new Window(pred, curr);
+                }
+
+                pred = curr;
+                curr = succ;
+            }
+        }
+    }
+
+    @Override
+    public boolean add(int key) {
+        while (true) {
+            Window w = find(key);
+            Node pred = w.pred;
+            Node curr = w.curr;
+
+            if (curr.key == key) {
+                return false;
+            }
+
+            Node node = new Node(key, curr);
+            if (pred.next.compareAndSet(curr, node, false, false)) {
+                return true;
+            }
+        }
+    }
+
+    @Override
+    public boolean remove(int key) {
+        while (true) {
+            Window w = find(key);
+            Node pred = w.pred;
+            Node curr = w.curr;
+
+            if (curr.key != key) {
+                return false;
+            }
+
+            Node succ = curr.next.getReference();
+            boolean marked = curr.next.compareAndSet(succ, succ, false, true);
+            if (!marked) {
+                continue;
+            }
+            // Node has been marked
+            pred.next.compareAndSet(curr, succ, false, false);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean contains(int key) {
+        boolean[] marked = {false};
+        Node curr = head.next.getReference();
+
+        while (curr.key < key) {
+            curr.next.get(marked);
+            curr = curr.next.getReference();
+        }
+
+        curr.next.get(marked);
+        return curr.key == key && !marked[0];
+    }
+}

@@ -1,0 +1,193 @@
+=== SEQUENTIAL PSEUDOCODE PROMPT: binary_search_tree ===
+
+You are an expert Java code generation assistant. Your task is to implement a simple sequential data structure using a sequential, node-based approach. The final code must be written in Java.
+
+The main data structure class, which you will create, must implement the com.example.utils.SetADT interface provided below. This requires you to provide concrete implementations for the add(int key), remove(int key), and contains(int key) methods. The underlying structure will be a sequence of nodes, where each node holds an integer key and a reference to the next node.
+The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+SetADT Interface Definition
+
+The generated class must implement the following Java interface. Ensure the method signatures and return types match exactly.
+
+Java
+
+package com.example.utils;
+
+/***
+ * A simple set interface working with integer keys.
+ */
+public interface SetADT {
+    boolean add(int key);
+    boolean remove(int key);
+    boolean contains(int key);
+}
+Pseudocode for Implementation
+
+Use the following pseudocode as a reference for your Java implementation. The logic must correctly handle the boolean return types as specified by the SetADT interface (e.g., return false if trying to add a duplicate key).
+Code snippet: 
+STRUCT Unit
+    key            // valid only if this is a leaf storing a key
+    left           // left child
+    right          // right child
+    isLeaf         // boolean flag
+END STRUCT
+STRUCT Container
+    root
+END STRUCT
+FUNCTION initialize()
+    root = new Unit
+    root.isLeaf = true
+    root.key = null        // empty tree represented as empty leaf
+END FUNCTION
+FUNCTION contains(k)
+
+    current = root
+
+    // Traverse until reaching a leaf
+    WHILE current.isLeaf == false DO
+
+        // Decide direction using routing key
+        IF k < current.key THEN
+            current = current.left
+        ELSE
+            current = current.right
+        END IF
+
+    END WHILE
+
+    // At leaf: check if key matches
+    IF current.key != null AND current.key == k THEN
+        RETURN true
+    ELSE
+        RETURN false
+    END IF
+
+END FUNCTION
+FUNCTION add(k)
+
+    parent = null
+    current = root
+
+    // Traverse to leaf
+    WHILE current.isLeaf == false DO
+        parent = current
+
+        IF k < current.key THEN
+            current = current.left
+        ELSE
+            current = current.right
+        END IF
+    END WHILE
+
+    // Case 1: empty tree
+    IF current.key == null THEN
+        current.key = k
+        RETURN true
+    END IF
+
+    // Case 2: key already exists
+    IF current.key == k THEN
+        RETURN false
+    END IF
+
+    // Case 3: split leaf and create new internal node
+
+    oldKey = current.key
+
+    newLeaf = new Unit
+    newLeaf.isLeaf = true
+    newLeaf.key = k
+
+    oldLeaf = new Unit
+    oldLeaf.isLeaf = true
+    oldLeaf.key = oldKey
+
+    newInternal = new Unit
+    newInternal.isLeaf = false
+
+    // Arrange children and routing key
+    IF k < oldKey THEN
+        newInternal.key = oldKey
+        newInternal.left = newLeaf
+        newInternal.right = oldLeaf
+    ELSE
+        newInternal.key = k
+        newInternal.left = oldLeaf
+        newInternal.right = newLeaf
+    END IF
+
+    // Replace root if necessary
+    IF parent == null THEN
+        root = newInternal
+    ELSE
+        IF parent.left == current THEN
+            parent.left = newInternal
+        ELSE
+            parent.right = newInternal
+        END IF
+    END IF
+
+    RETURN true
+
+END FUNCTION
+FUNCTION remove(k)
+
+    parent = null
+    grandParent = null
+    current = root
+
+    // Traverse to leaf
+    WHILE current.isLeaf == false DO
+        grandParent = parent
+        parent = current
+
+        IF k < current.key THEN
+            current = current.left
+        ELSE
+            current = current.right
+        END IF
+    END WHILE
+
+    // Key not found
+    IF current.key == null OR current.key != k THEN
+        RETURN false
+    END IF
+
+    // Case 1: only one key in structure
+    IF parent == null THEN
+        current.key = null
+        RETURN true
+    END IF
+
+    // Identify sibling
+    IF parent.left == current THEN
+        sibling = parent.right
+    ELSE
+        sibling = parent.left
+    END IF
+
+    // If parent is root
+    IF grandParent == null THEN
+        root = sibling
+        RETURN true
+    END IF
+
+    // Remove parent and promote sibling
+    IF grandParent.left == parent THEN
+        grandParent.left = sibling
+    ELSE
+        grandParent.right = sibling
+    END IF
+
+    RETURN true
+
+END FUNCTION
+
+Output Requirements
+
+The final generated Java code must not include the words "Binary Search Tree" or "Tree" in any class names, method names, variable names, or comments.
+
+The main class name must be SequentialDataStructure (mandatory).
+
+The SequentialDataStructure class MUST have a no-argument constructor (e.g., `public SequentialDataStructure()`).
+
+Output only the Java code — no additional text, explanations, or comments outside the code.

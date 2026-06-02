@@ -1,0 +1,49 @@
+{
+    "ds_name": "linked_list",
+    "atomic_fields": {
+        "primary_class": "AtomicMarkableReference",
+        "alt_classes": [
+            "AtomicReference",
+            "AtomicReferenceFieldUpdater"
+        ],
+        "required_fields": [
+            "next"
+        ]
+    },
+    "required_keywords": [
+        "compareAndSet",
+        "AtomicMarkableReference|AtomicReferenceFieldUpdater",
+        "getReference|isMarked",
+        "head|sentinel",
+        "next",
+        "while"
+    ],
+    "forbidden_keywords": [
+        "synchronized",
+        "ReentrantLock",
+        "lock()",
+        "unlock()",
+        "wait(",
+        "notify(",
+        "notifyAll(",
+        "Semaphore",
+        "CountDownLatch",
+        "BlockingQueue",
+        "acquire(",
+        "release("
+    ],
+    "structural_invariants": {
+        "has_sentinel_head": true,
+        "node_has_next_field": true,
+        "node_has_no_left_right_children": true,
+        "has_window_or_find_method": true,
+        "find_does_physical_cleanup": true,
+        "uses_mark_bit_for_deletion": true
+    },
+    "annotation_score_weights": {
+        "atomic_class_match": 0.25,
+        "required_keywords_match": 0.35,
+        "forbidden_keywords_absent": 0.20,
+        "structural_invariants": 0.20
+    }
+}

@@ -1,0 +1,66 @@
+name,text
+Queue,"You are an expert Java code generation assistant. Your task is to implement a simple sequential data structure using a sequential, node-based approach. The final code must be written in Java.
+
+The main data structure class, which you will create, must implement the com.example.utils.QueueADT interface provided below. This requires you to provide concrete implementations for the enqueue(int val), dequeue(), and isEmpty() methods. The underlying structure will be a sequence of nodes, where each node holds an integer value and a reference to the next node.
+
+The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+
+The generated class must implement the following Java interface. Ensure the method signatures and return types match exactly:
+
+QueueADT Interface Definition:
+package com.example.utils;
+public interface QueueADT {
+    void enqueue(int val);
+    int dequeue();     // returns -1 if empty
+    boolean isEmpty();
+}
+
+Pseudocode for Implementation:
+
+Use the following pseudocode as a reference for your Java implementation. The logic must correctly handle the boolean return types as specified by the QueueADT interface (e.g., return false if trying to add a duplicate key).
+
+Code snippet:
+
+Class SequentialDataStructure Implements QueueADT:
+    // Initialize the queue
+    Method InitializeQueue():
+        // Create an empty structure to represent the queue
+        front = 0         // Points to the front of the queue
+        rear = -1         // Points to the rear of the queue
+        size = 0          // Number of elements in the queue
+
+    // Enqueue: Add an element to the rear of the queue
+    Method enqueue(val):
+        If size == capacity:
+            Print ""Queue is full""
+            Return
+        End If
+        rear = rear + 1  // Move rear to the next position
+        queueArray[rear] = val
+        size = size + 1  // Increment the size of the queue
+        Print ""Element added to queue""
+
+    // Dequeue: Remove and return an element from the front of the queue
+    Method dequeue():
+        If size == 0:
+            Print ""Queue is empty""
+            Return -1  // Return -1 when the queue is empty
+        End If
+        val = queueArray[front]
+        front = front + 1  // Move front to the next position
+        size = size - 1    // Decrement the size of the queue
+        Return val
+
+    // IsEmpty: Check if the queue is empty
+    Method isEmpty():
+        Return size == 0  // Returns true if the queue is empty, else false
+
+Output Requirements:
+
+The final generated Java code must not include the words ""Queue"" in any class names, method names, variable names, or comments.
+
+The main class name must be SequentialDataStructure (mandatory).
+
+The SequentialDataStructure class MUST have a no-argument constructor (e.g., `public SequentialDataStructure()`).
+
+Output only the Java code — no additional text, explanations, or comments outside the code."

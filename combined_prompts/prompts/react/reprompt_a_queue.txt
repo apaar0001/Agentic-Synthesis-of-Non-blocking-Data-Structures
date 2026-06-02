@@ -1,0 +1,9 @@
+=== REPROMPT A (Consistency Failure) — queue ===
+
+The concurrent queue implementation given by you before is not linearizable — enqueue/dequeue counts are inconsistent.
+
+Revise the implementation. Ensure:
+- enqueue() atomically links the new node via CAS on the tail.
+- dequeue() atomically advances the head sentinel via CAS and returns the value.
+- The // Dequeue victim point comment appears immediately after the successful CAS that advances the head (success path only, not on failure/retry paths).
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or long comments in the code.

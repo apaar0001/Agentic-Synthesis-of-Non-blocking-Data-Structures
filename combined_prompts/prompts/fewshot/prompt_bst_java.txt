@@ -1,0 +1,895 @@
+=== FEW-SHOT PROMPT: prompt_bst_java ===
+
+You are a world-class expert in concurrent programming and non-blocking data structures.
+
+Your specialty is converting correct sequential data structure implementations into correct, efficient, linearizable concurrent implementations in Java.
+
+You are given few-shot examples in the following format:
+
+* `seq1 -> conc1`
+* `seq2 -> conc2`
+* `seq3 -> conc3`
+
+Each pair contains:
+
+1. A sequential Java implementation of a data structure.
+2. Its corresponding concurrent Java implementation.
+
+These examples show the expected conversion style, coding pattern, class structure, imports, comment preservation, and concurrency design.
+
+You are then given:
+
+* `seq4`
+
+Your task is to convert `seq4` into:
+
+* `conc4`
+
+That means: generate the complete concurrent Java implementation corresponding to the given sequential Java implementation `seq4`.
+
+You are given:
+
+1. A sequential Java implementation of a data structure.
+2. The corresponding abstract data type interface, usually `SetADT`.
+3. Reference concurrent implementations of other data structures.
+4. Comments inside the sequential/concurrent reference code marking where important logic should be preserved or inserted.
+
+Your task is to generate a complete concurrent Java implementation from the given sequential code.
+
+You must follow these rules strictly:
+
+1. Preserve the original class name exactly as requested.
+
+2. Preserve the existing package declaration and import style from the reference implementations.
+
+3. Preserve all important comments from the given sequential code.
+
+4. If the code contains comments such as:
+
+   * `// Node has been marked`
+
+   then keep those comments in the generated concurrent code and place the corresponding logic near them.
+
+5. The generated class must implement the given ADT interface correctly.
+
+6. Do not change the public method signatures.
+
+7. Do not introduce locks, `synchronized`, `ReentrantLock`, `Semaphore`, blocking queues, or any other blocking primitives.
+
+8. Use Java atomic operations such as:
+
+   * `AtomicReference`
+   * `AtomicMarkableReference`
+   * `AtomicStampedReference`
+   * `AtomicInteger`
+   * `compareAndSet`
+   * CAS retry loops
+
+9. The implementation must be thread-safe.
+
+10. The implementation should aim to be lock-free where possible.
+
+11. The implementation must preserve the sequential semantics:
+
+* `add(x)` inserts only if absent
+* `remove(x)` removes only if present
+* `contains(x)` returns true only for logically present elements
+
+12. Return values must match the sequential version exactly.
+13. Use logical deletion where appropriate.
+14. Avoid unsafe memory reclamation unless explicitly provided.
+15. Do not add unnecessary explanations.
+16. Output only the final Java code unless explicitly asked to explain.
+
+Important interface rule:
+
+The implementation must follow this interface style:
+
+```java
+package com.example.utils;
+
+/**
+ * A simple set interface working with integer keys.
+ */
+public interface SetADT {
+    boolean add(int key);
+    boolean remove(int key);
+    boolean contains(int key);
+}
+```
+
+Few-shot input/output format are attached
+
+seq1
+
+```java
+package com.example.Sets;
+
+import com.example.utils.SetADT;
+
+public class SequentialDataStructure implements SetADT {
+
+    private static class Node {
+        final int key;
+        Node next;
+
+        Node(int key) {
+            this.key = key;
+            this.next = null;
+        }
+    }
+
+    private final Node head;
+    private final Node tail;
+
+    public SequentialDataStructure() {
+        head = new Node(Integer.MIN_VALUE);
+        tail = new Node(Integer.MAX_VALUE);
+        head.next = tail;
+    }
+
+    private static class Window {
+        final Node pred, curr;
+
+        Window(Node pred, Node curr) {
+            this.pred = pred;
+            this.curr = curr;
+        }
+    }
+
+    private Window find(int key) {
+        Node pred = head;
+        Node curr = pred.next;
+        while (curr.key < key) {
+            pred = curr;
+            curr = curr.next;
+        }
+        return new Window(pred, curr);
+    }
+
+    @Override
+    public boolean add(int key) {
+        Window w = find(key);
+        if (w.curr.key == key) {
+            return false;
+        }
+        Node node = new Node(key);
+        node.next = w.curr;
+        w.pred.next = node;
+        return true;
+    }
+
+    @Override
+    public boolean remove(int key) {
+        Window w = find(key);
+        if (w.curr.key != key) {
+            return false;
+        }
+        w.pred.next = w.curr.next;
+        return true;
+    }
+
+    @Override
+    public boolean contains(int key) {
+        Node curr = head;
+        while (curr.key < key) {
+            curr = curr.next;
+        }
+        return curr.key == key;
+    }
+}
+```
+
+conc1
+
+```java
+package com.example.Sets;
+
+import com.example.utils.SetADT;
+import java.util.concurrent.atomic.AtomicMarkableReference;
+
+/**
+ * Harris-Michael concurrent lock-free linked list.
+ *
+ * Algorithm: Harris (2001) + Michael (2002)
+ * - Logical deletion: marks node's next pointer via AtomicMarkableReference
+ * - Physical deletion: CAS pred.next during find() traversal
+ * - Linearization point for add(): successful CAS on pred.next
+ * - Linearization point for remove(): successful mark CAS on curr.next
+ *
+ * Lock-freedom: every path through add/remove/contains makes CAS progress;
+ * no thread can block another.
+ */
+public class ConcurrentDataStructure implements SetADT {
+
+    private static class Node {
+        final int key;
+        final AtomicMarkableReference<Node> next;
+
+        Node(int key) {
+            this.key = key;
+            this.next = new AtomicMarkableReference<>(null, false);
+        }
+    }
+
+    private final Node head;
+    private final Node tail;
+
+    public ConcurrentDataStructure() {
+        head = new Node(Integer.MIN_VALUE);
+        tail = new Node(Integer.MAX_VALUE);
+        head.next.set(tail, false);
+    }
+
+    private static class Window {
+        final Node pred, curr;
+
+        Window(Node pred, Node curr) {
+            this.pred = pred;
+            this.curr = curr;
+        }
+    }
+
+    private Window find(int key) {
+        Node pred, curr, succ;
+        boolean[] marked = { false };
+        boolean snip;
+        retry: while (true) {
+            pred = head;
+            curr = pred.next.getReference();
+            while (true) {
+                succ = curr.next.get(marked);
+                while (marked[0]) {
+                    snip = pred.next.compareAndSet(curr, succ, false, false);
+                    if (!snip)
+                        continue retry;
+                    curr = succ;
+                    succ = curr.next.get(marked);
+                }
+                if (curr.key >= key)
+                    return new Window(pred, curr);
+                pred = curr;
+                curr = succ;
+            }
+        }
+    }
+
+    @Override
+    public boolean add(int key) {
+        while (true) {
+            Window w = find(key);
+            if (w.curr.key == key)
+                return false;
+            Node node = new Node(key);
+            node.next.set(w.curr, false);
+            if (w.pred.next.compareAndSet(w.curr, node, false, false))
+                return true;
+        }
+    }
+
+    @Override
+    public boolean remove(int key) {
+        while (true) {
+            Window w = find(key);
+            if (w.curr.key != key)
+                return false;
+            Node succ = w.curr.next.getReference();
+            if (!w.curr.next.compareAndSet(succ, succ, false, true))
+                continue;
+            // Node has been marked
+            w.pred.next.compareAndSet(w.curr, succ, false, false);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean contains(int key) {
+        boolean[] marked = { false };
+        Node curr = head;
+        while (curr.key < key) {
+            curr = curr.next.getReference();
+            curr.next.get(marked);
+        }
+        return (curr.key == key && !marked[0]);
+    }
+}
+```
+
+seq2
+
+```java
+package com.example.Sets;
+
+import com.example.utils.SetADT;
+import java.util.Random;
+
+public class SequentialDataStructure implements SetADT {
+
+    private static final int MAX_LEVEL = 32;
+
+    private static class Node {
+        final int key;
+        final int topLevel;
+        final Node[] next;
+
+        Node(int key, int level) {
+            this.key = key;
+            this.topLevel = level;
+            this.next = new Node[level + 1];
+        }
+    }
+
+    private final Node head;
+    private final Node tail;
+    private final Random random = new Random();
+
+    public SequentialDataStructure() {
+        head = new Node(Integer.MIN_VALUE, MAX_LEVEL);
+        tail = new Node(Integer.MAX_VALUE, MAX_LEVEL);
+        for (int i = 0; i <= MAX_LEVEL; i++) {
+            head.next[i] = tail;
+        }
+    }
+
+    private boolean find(int key, Node[] preds, Node[] succs) {
+        Node pred = head;
+        for (int level = MAX_LEVEL; level >= 0; level--) {
+            Node curr = pred.next[level];
+            while (curr.key < key) {
+                pred = curr;
+                curr = curr.next[level];
+            }
+            preds[level] = pred;
+            succs[level] = curr;
+        }
+        return succs[0].key == key;
+    }
+
+    @Override
+    public boolean add(int key) {
+        Node[] preds = new Node[MAX_LEVEL + 1];
+        Node[] succs = new Node[MAX_LEVEL + 1];
+        if (find(key, preds, succs)) {
+            return false;
+        }
+        int topLevel = randomLevel();
+        Node newNode = new Node(key, topLevel);
+        for (int i = 0; i <= topLevel; i++) {
+            newNode.next[i] = succs[i];
+            preds[i].next[i] = newNode;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean remove(int key) {
+        Node[] preds = new Node[MAX_LEVEL + 1];
+        Node[] succs = new Node[MAX_LEVEL + 1];
+        if (!find(key, preds, succs)) {
+            return false;
+        }
+        Node nodeToRemove = succs[0];
+        for (int level = nodeToRemove.topLevel; level >= 0; level--) {
+            preds[level].next[level] = nodeToRemove.next[level];
+        }
+        return true;
+    }
+
+    @Override
+    public boolean contains(int key) {
+        Node pred = head;
+        for (int level = MAX_LEVEL; level >= 0; level--) {
+            Node curr = pred.next[level];
+            while (curr.key < key) {
+                pred = curr;
+                curr = curr.next[level];
+            }
+        }
+        Node curr = pred.next[0];
+        return curr.key == key;
+    }
+
+    private int randomLevel() {
+        int level = 0;
+        while (level < MAX_LEVEL && random.nextInt(2) == 0) {
+            level++;
+        }
+        return level;
+    }
+}
+```
+
+conc2
+
+```java
+package com.example.Sets;
+
+import com.example.utils.SetADT;
+import java.util.concurrent.atomic.AtomicMarkableReference;
+import java.util.Random;
+
+/**
+ * Lock-free Skip List — Harris-Michael style.
+ * Uses AtomicMarkableReference on every forward pointer at every level.
+ * Names: Node / next[] / key / topLevel / MAX_LEVEL=32 / find()
+ *
+ * remove() two-phase: mark all levels top→1, then CAS level-0 mark.
+ * Linearization point: successful level-0 CAS.
+ * Lock-freedom: every CAS attempt makes global progress.
+ */
+public class ConcurrentDataStructure implements SetADT {
+
+    private static final int MAX_LEVEL = 32;
+
+    private static class Node {
+        final int key;
+        final int topLevel;
+        @SuppressWarnings("unchecked")
+        final AtomicMarkableReference<Node>[] next;
+
+        @SuppressWarnings("unchecked")
+        Node(int key, int level) {
+            this.key = key;
+            this.topLevel = level;
+            this.next = new AtomicMarkableReference[level + 1];
+            for (int i = 0; i <= level; i++)
+                next[i] = new AtomicMarkableReference<>(null, false);
+        }
+    }
+
+    private final Node head;
+    private final Node tail;
+    private final Random random = new Random();
+
+    public ConcurrentDataStructure() {
+        head = new Node(Integer.MIN_VALUE, MAX_LEVEL);
+        tail = new Node(Integer.MAX_VALUE, MAX_LEVEL);
+        for (int i = 0; i <= MAX_LEVEL; i++)
+            head.next[i].set(tail, false);
+    }
+
+    private boolean find(int key, Node[] preds, Node[] succs) {
+        boolean[] marked = { false };
+        retry: while (true) {
+            Node pred = head;
+            for (int level = MAX_LEVEL; level >= 0; level--) {
+                Node curr = pred.next[level].getReference();
+                while (true) {
+                    Node succ = curr.next[level].get(marked);
+                    while (marked[0]) {
+                        if (!pred.next[level].compareAndSet(curr, succ, false, false))
+                            continue retry;
+                        curr = pred.next[level].getReference();
+                        succ = curr.next[level].get(marked);
+                    }
+                    if (curr.key < key) {
+                        pred = curr;
+                        curr = succ;
+                    } else
+                        break;
+                }
+                preds[level] = pred;
+                succs[level] = curr;
+            }
+            return succs[0].key == key;
+        }
+    }
+
+    @Override
+    public boolean add(int key) {
+        int topLevel = randomLevel();
+        Node[] preds = new Node[MAX_LEVEL + 1], succs = new Node[MAX_LEVEL + 1];
+        while (true) {
+            if (find(key, preds, succs))
+                return false;
+            Node newNode = new Node(key, topLevel);
+            for (int i = 0; i <= topLevel; i++)
+                newNode.next[i].set(succs[i], false);
+            if (!preds[0].next[0].compareAndSet(succs[0], newNode, false, false))
+                continue;
+            for (int i = 1; i <= topLevel; i++) {
+                while (!preds[i].next[i].compareAndSet(succs[i], newNode, false, false))
+                    find(key, preds, succs);
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public boolean remove(int key) {
+        Node[] preds = new Node[MAX_LEVEL + 1], succs = new Node[MAX_LEVEL + 1];
+        while (true) {
+            if (!find(key, preds, succs))
+                return false;
+            Node nodeToRemove = succs[0];
+            // Mark all upper levels first (top → 1)
+            for (int level = nodeToRemove.topLevel; level >= 1; level--) {
+                boolean[] marked = { false };
+                Node succ = nodeToRemove.next[level].get(marked);
+                while (!marked[0]) {
+                    nodeToRemove.next[level].compareAndSet(succ, succ, false, true);
+                    succ = nodeToRemove.next[level].get(marked);
+                }
+            }
+            // Linearization point: mark level-0
+            boolean[] marked = { false };
+            Node succ = nodeToRemove.next[0].get(marked);
+            while (true) {
+                boolean iMarkedIt = nodeToRemove.next[0].compareAndSet(succ, succ, false, true);
+                succ = succs[0].next[0].get(marked);
+                if (iMarkedIt) {
+                    // Node has been marked
+                    find(key, preds, succs);
+                    return true;
+                } else if (marked[0])
+                    return false;
+            }
+        }
+    }
+
+    @Override
+    public boolean contains(int key) {
+        boolean[] marked = { false };
+        Node pred = head;
+        for (int level = MAX_LEVEL; level >= 0; level--) {
+            Node curr = pred.next[level].getReference();
+            while (true) {
+                Node succ = curr.next[level].get(marked);
+                while (marked[0]) {
+                    curr = succ;
+                    succ = curr.next[level].get(marked);
+                }
+                if (curr.key < key) {
+                    pred = curr;
+                    curr = succ;
+                } else
+                    break;
+            }
+        }
+        Node curr = pred.next[0].getReference();
+        curr.next[0].get(marked);
+        return curr.key == key && !marked[0];
+    }
+
+    private int randomLevel() {
+        int level = 0;
+        while (level < MAX_LEVEL && random.nextInt(2) == 0)
+            level++;
+        return level;
+    }
+}
+```
+
+seq3
+
+```java
+package com.example.Sets;
+
+import com.example.utils.SetADT;
+
+public class SequentialDataStructure implements SetADT {
+
+    private static class Node {
+        final int key;
+        Node next;
+
+        Node(int k) {
+            key = k;
+            next = null;
+        }
+    }
+
+    private static class Bucket {
+        final Node head = new Node(Integer.MIN_VALUE);
+        final Node tail = new Node(Integer.MAX_VALUE);
+
+        Bucket() {
+            head.next = tail;
+        }
+
+        private static class Window {
+            Node pred, curr;
+
+            Window(Node p, Node c) {
+                pred = p;
+                curr = c;
+            }
+        }
+
+        private Window find(int key) {
+            Node pred = head;
+            Node curr = pred.next;
+            while (curr.key < key) {
+                pred = curr;
+                curr = curr.next;
+            }
+            return new Window(pred, curr);
+        }
+
+        boolean add(int key) {
+            Window w = find(key);
+            if (w.curr.key == key) {
+                return false;
+            }
+            Node node = new Node(key);
+            node.next = w.curr;
+            w.pred.next = node;
+            return true;
+        }
+
+        boolean remove(int key) {
+            Window w = find(key);
+            if (w.curr.key != key) {
+                return false;
+            }
+            w.pred.next = w.curr.next;
+            return true;
+        }
+
+        boolean contains(int key) {
+            Node curr = head;
+            while (curr.key < key) {
+                curr = curr.next;
+            }
+            return curr.key == key;
+        }
+    }
+
+    private final Bucket[] table;
+    private static final int CAPACITY = 1024;
+
+    public SequentialDataStructure() {
+        table = new Bucket[CAPACITY];
+        for (int i = 0; i < CAPACITY; i++) {
+            table[i] = new Bucket();
+        }
+    }
+
+    private int hash(int key) {
+        return Math.abs(key) % CAPACITY;
+    }
+
+    @Override
+    public boolean add(int key) {
+        return table[hash(key)].add(key);
+    }
+
+    @Override
+    public boolean remove(int key) {
+        return table[hash(key)].remove(key);
+    }
+
+    @Override
+    public boolean contains(int key) {
+        return table[hash(key)].contains(key);
+    }
+}
+```
+
+conc3
+
+```java
+package com.example.Sets;
+
+import com.example.utils.SetADT;
+import java.util.concurrent.atomic.AtomicMarkableReference;
+
+/**
+ * Lock-free Hash Table — Harris-Michael chaining (Ref 1).
+ *
+ * Structure: array of Bucket, each a sorted lock-free linked list.
+ * Bucket uses Harris-Michael: AtomicMarkableReference for logical delete,
+ * physical removal during find().
+ * Names: Node/key/next, Bucket/Window/find(), capacity=1024
+ *
+ * Victim anchor is in the per-bucket remove() — the outer remove() delegates,
+ * so the anchor fires inside the Bucket's remove() which is what the test
+ * harness injects into via class-level search.
+ */
+public class ConcurrentDataStructure implements SetADT {
+
+    private static class Node {
+        final int key;
+        final AtomicMarkableReference<Node> next;
+
+        Node(int k) {
+            key = k;
+            next = new AtomicMarkableReference<>(null, false);
+        }
+    }
+
+    private static class Bucket {
+        final Node head = new Node(Integer.MIN_VALUE);
+        final Node tail = new Node(Integer.MAX_VALUE);
+
+        Bucket() {
+            head.next.set(tail, false);
+        }
+
+        private static class Window {
+            Node pred, curr;
+
+            Window(Node p, Node c) {
+                pred = p;
+                curr = c;
+            }
+        }
+
+        private Window find(int key) {
+            Node pred, curr, succ;
+            boolean[] marked = { false };
+            retry: while (true) {
+                pred = head;
+                curr = pred.next.getReference();
+                while (true) {
+                    succ = curr.next.get(marked);
+                    while (marked[0]) {
+                        if (!pred.next.compareAndSet(curr, succ, false, false))
+                            continue retry;
+                        curr = succ;
+                        succ = curr.next.get(marked);
+                    }
+                    if (curr.key >= key)
+                        return new Window(pred, curr);
+                    pred = curr;
+                    curr = succ;
+                }
+            }
+        }
+
+        boolean add(int key) {
+            while (true) {
+                Window w = find(key);
+                if (w.curr.key == key)
+                    return false;
+                Node node = new Node(key);
+                node.next.set(w.curr, false);
+                if (w.pred.next.compareAndSet(w.curr, node, false, false))
+                    return true;
+            }
+        }
+
+        boolean remove(int key) {
+            while (true) {
+                Window w = find(key);
+                if (w.curr.key != key)
+                    return false;
+                Node succ = w.curr.next.getReference();
+                if (!w.curr.next.compareAndSet(succ, succ, false, true))
+                    continue;
+                // Node has been marked
+                w.pred.next.compareAndSet(w.curr, succ, false, false);
+                return true;
+            }
+        }
+
+        boolean contains(int key) {
+            boolean[] marked = { false };
+            Node curr = head;
+            while (curr.key < key)
+                curr = curr.next.getReference();
+            curr.next.get(marked);
+            return curr.key == key && !marked[0];
+        }
+    }
+
+    private final Bucket[] table;
+    private static final int CAPACITY = 1024;
+
+    public ConcurrentDataStructure() {
+        table = new Bucket[CAPACITY];
+        for (int i = 0; i < CAPACITY; i++)
+            table[i] = new Bucket();
+    }
+
+    private int hash(int key) {
+        return Math.abs(key) % CAPACITY;
+    }
+
+    @Override
+    public boolean add(int key) {
+        return table[hash(key)].add(key);
+    }
+
+    @Override
+    public boolean remove(int key) {
+        return table[hash(key)].remove(key);
+    }
+
+    @Override
+    public boolean contains(int key) {
+        return table[hash(key)].contains(key);
+    }
+}
+```
+
+seq4
+
+```java
+package com.example.Sets;
+
+import com.example.utils.SetADT;
+
+public class SequentialDataStructure implements SetADT {
+
+    private static class Node {
+        final int key;
+        Node left = null;
+        Node right = null;
+        boolean marked = false;
+
+        Node(int key) {
+            this.key = key;
+        }
+    }
+
+    private final Node root = new Node(Integer.MIN_VALUE);
+
+    @Override
+    public boolean add(int key) {
+        Node parent = null;
+        Node curr = root;
+
+        while (curr != null) {
+            if (key == curr.key) {
+                if (!curr.marked) {
+                    return false;
+                }
+                curr.marked = false;
+                return true;
+            }
+            parent = curr;
+            if (key < curr.key) {
+                curr = curr.left;
+            } else {
+                curr = curr.right;
+            }
+        }
+
+        Node newNode = new Node(key);
+        if (key < parent.key) {
+            parent.left = newNode;
+        } else {
+            parent.right = newNode;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean remove(int key) {
+        Node curr = root;
+        while (curr != null) {
+            if (key == curr.key) {
+                if (!curr.marked) {
+                    // Node has been marked
+                    curr.marked = true;
+                    return true;
+                }
+                return false;
+            }
+            if (key < curr.key) {
+                curr = curr.left;
+            } else {
+                curr = curr.right;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean contains(int key) {
+        Node curr = root;
+        while (curr != null) {
+            if (key == curr.key) {
+                return !curr.marked;
+            }
+            if (key < curr.key) {
+                curr = curr.left;
+            } else {
+                curr = curr.right;
+            }
+        }
+        return false;
+    }
+}
+```
