@@ -1,0 +1,39 @@
+=== CONCURRENT TRANSFORMATION PROMPT (Stack Variant) ===
+
+Now convert the sequential stack implementation (JAVA code) you wrote above into a lock-free/non-blocking concurrent version using CAS (Treiber Stack style).
+
+Output Requirement: Provide only the concurrent code implementation with the class name ConcurrentDataStructure. No explanations, no extra text.
+The ConcurrentDataStructure class MUST have a no-argument constructor (e.g., `public ConcurrentDataStructure()`).
+
+Lock-Free Implementation Instructions:
+No Locks Allowed
+Do not use synchronized blocks or ReentrantLock.
+
+Algorithm — Treiber Lock-Free Stack:
+Use a single AtomicReference<Node> top field initialized to null.
+push(int val): Create a new Node, set its next to the current top, then CAS top from the old value to the new node. Retry on CAS failure.
+pop(): Read top. If null, return -1. Otherwise CAS top from the current node to current.next. Retry on CAS failure. Return the value of the successfully removed node.
+isEmpty(): Return top.get() == null.
+
+Structural Requirement:
+The Node class must hold an int value/key field and a Node next field (matching the sequential node structure). No AtomicMarkableReference needed.
+
+Linearizability Requirement:
+Every push/pop must appear to take effect at a single instant.
+The linearization point of pop() is the successful CAS that removes the top node.
+Ensure all CAS retry loops make progress and never spin indefinitely on a fixed state.
+
+IMPORTANT — Linearization Comment:
+Inside pop(), immediately after the successful CAS that advances the top pointer (the line that atomically removes the top node), add exactly this comment on the next line:
+// Pop victim point
+Do NOT place this comment on a failure path, inside a retry loop body before the CAS, or after any unrelated statement.
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or comments in the code (except the above mentioned comment).
+
+API Contract (StackADT Interface):
+package com.example.utils;
+public interface StackADT {
+\tvoid push(int val);
+\tint pop();         // returns -1 if empty
+\tboolean isEmpty();
+}
+Ensure that the generated code implements the StackADT interface.\

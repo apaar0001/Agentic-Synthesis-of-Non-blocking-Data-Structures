@@ -1,0 +1,41 @@
+=== ZERO-SHOT USER PROMPT: queue (Java) ===
+
+Act as a concurrent data structure expert. Implement a lock-free FIFO queue in Java that implements \
+the following interface:
+
+package com.example.utils;
+/**
+ * A lock-free integer Queue interface.
+ */
+public interface QueueADT {
+    void enqueue(int val);
+    int dequeue();      // returns -1 if empty
+    boolean isEmpty();
+}
+
+Use the Michael-Scott CAS-based queue algorithm:
+  - Sentinel (dummy) head node; AtomicReference<Node> head and tail
+  - enqueue(): CAS on tail.next, then advance tail
+  - dequeue(): CAS on head, advance past sentinel; return -1 if empty
+The Node class must have:
+  - An integer val field
+  - An AtomicReference<Node> next field
+
+Lock-Free Queue Implementation Requirements:
+1. NO LOCKS: Do not use synchronized, ReentrantLock, Semaphore, or any blocking primitives.
+2. ALGORITHM: Implement the Michael-Scott lock-free queue (or equivalent CAS-based FIFO queue).
+   - Maintain an AtomicReference<Node> for head and tail.
+   - enqueue(): CAS on tail.next to link the new node, then advance tail.
+   - dequeue(): CAS on head to advance past the sentinel node; return -1 if empty.
+3. SENTINEL NODE: Use a sentinel (dummy) head node so head and tail are never null.
+4. LOCK-FREEDOM: System-wide progress guaranteed even if one thread stalls indefinitely.
+5. CLASS NAME: The implementation class MUST be named exactly ConcurrentDataStructure.
+6. PACKAGE: Must be in package com.example.Sets; and import com.example.utils.QueueADT;
+7. VICTIM COMMENT: Inside dequeue(), immediately after the successful CAS that removes the head (before returning the value),
+   add exactly this comment on its own line:
+       // Dequeue victim point
+   Place it ONLY on the success path (CAS succeeded, not empty). Do NOT place it on empty/retry paths.
+8. OUTPUT: Return ONLY the Java code, no explanations, no markdown text outside code blocks.
+9. The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+
+Implement the complete Java class ConcurrentDataStructure in package com.example.Sets.

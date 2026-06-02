@@ -1,0 +1,39 @@
+=== ZERO-SHOT USER PROMPT: linked_list (Java) ===
+
+Act as a concurrent data structure expert. Implement a lock-free singly linked list in Java that \
+implements the following interface:
+
+package com.example.utils;
+/**
+ * A simple set interface working with integer keys.
+ */
+public interface SetADT {
+    boolean add(int key);
+    boolean remove(int key);
+    boolean contains(int key);
+}
+
+The linked list stores integer keys in sorted order (ascending).
+The Node class must have:
+  - An integer key field
+  - A next pointer (use AtomicMarkableReference<Node> for lock-free deletion)
+
+Lock-Free Implementation Requirements:
+1. NO LOCKS: Do not use synchronized, ReentrantLock, Semaphore, or any blocking primitives.
+2. CAS-BASED UPDATES: Use AtomicReference, AtomicMarkableReference, or AtomicInteger with compareAndSet loops.
+3. LOGICAL DELETION: For remove(), first logically mark the node (AtomicMarkableReference), then physically unlink.
+   IMPORTANT: When using AtomicMarkableReference, never use .get(null). Use .getReference() instead.
+4. LINEARIZABILITY: Each operation (add/remove/contains) must appear atomic at a single linearization point.
+   - Skip/help-remove any logically-deleted (marked) nodes during traversal.
+   - Never use a marked node as a predecessor for a CAS update.
+5. LOCK-FREEDOM: System-wide progress must be guaranteed even if one thread stalls indefinitely.
+6. CLASS NAME: The implementation class MUST be named exactly ConcurrentDataStructure.
+7. PACKAGE: Must be in package com.example.Sets; and import com.example.utils.SetADT;
+8. LINEARIZATION POINT COMMENT: Immediately after the successful CAS/operation that logically deletes a node,
+   add exactly this comment on its own line:
+       // Node has been marked
+   Place it ONLY on the success path of logical deletion. Do NOT place it on retry/failure paths.
+9. OUTPUT: Return ONLY the Java code, no explanations, no markdown text outside code blocks.
+10. The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+
+Implement the complete Java class ConcurrentDataStructure in package com.example.Sets.

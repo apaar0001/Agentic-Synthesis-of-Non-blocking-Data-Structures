@@ -1,0 +1,87 @@
+=== SEQUENTIAL PSEUDOCODE PROMPT: linked_list ===
+
+You are an expert Java code generation assistant. Your task is to implement a simple sequential data structure using a sequential, node-based approach. The final code must be written in Java.
+
+The main data structure class, which you will create, must implement the com.example.utils.SetADT interface provided below. This requires you to provide concrete implementations for the add(int key), remove(int key), and contains(int key) methods. The underlying structure will be a sequence of nodes, where each node holds an integer key and a reference to the next node.
+The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+SetADT Interface Definition
+
+The generated class must implement the following Java interface. Ensure the method signatures and return types match exactly.
+
+Java
+
+package com.example.utils;
+
+/***
+ * A simple set interface working with integer keys.
+ */
+public interface SetADT {
+    boolean add(int key);
+    boolean remove(int key);
+    boolean contains(int key);
+}
+Pseudocode for Implementation
+
+Use the following pseudocode as a reference for your Java implementation. The logic must correctly handle the boolean return types as specified by the SetADT interface (e.g., return false if trying to add a duplicate key).
+
+Code snippet
+
+Node:
+    data
+    next
+LinkedList:
+    head
+function add(value):
+    newNode ← Node(value)
+    if head = null then
+        head ← newNode
+    else
+        current ← head
+        while current.next ≠ null do
+            current ← current.next
+        end while
+        current.next ← newNode
+    end if
+end function
+function contains(value):
+    current ← head
+    while current ≠ null do
+        if current.data = value then
+            return true
+        end if
+        current ← current.next
+    end while
+    return false
+end function
+function remove(value):
+    if head = null then
+        return  // List is empty
+    end if
+
+    // If the value is in the head node
+    if head.data = value then
+        head ← head.next
+        return
+    end if
+
+    current ← head
+    while current.next ≠ null and current.next.data ≠ value do
+        current ← current.next
+    end while
+
+    if current.next = null then
+        return  // Value not found
+    else
+        current.next ← current.next.next  // Bypass the node to remove
+    end if
+end function
+
+Output Requirements
+
+The final generated Java code must not include the words "Linked" or "List" in any class names, method names, variable names, or comments.
+
+The main class name must be SequentialDataStructure (mandatory).
+
+The SequentialDataStructure class MUST have a no-argument constructor (e.g., `public SequentialDataStructure()`).
+
+Output only the Java code — no additional text, explanations, or comments outside the code.

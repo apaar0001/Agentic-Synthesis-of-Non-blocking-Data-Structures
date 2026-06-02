@@ -1,0 +1,15 @@
+=== REPROMPT B (Lock-Freedom Failure) — queue ===
+
+The concurrent queue implementation given by you before fails when a thread stalls inside dequeue() — it is NOT lock-free.
+
+In a lock-free queue, all threads must be able to make progress even when one stalls.
+
+Common causes:
+- Missing tail-helping: a thread lagging behind on tail update blocks enqueue progress.
+- dequeue() not handling the case where tail is behind head — help advance tail first.
+
+Fix the implementation so stalled threads do not block others.
+
+Reminder: add // Dequeue victim point immediately after the successful CAS that advances the head sentinel (success path only — not on retry paths).
+Provide the complete fixed ConcurrentDataStructure.java.
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or long comments in the code.

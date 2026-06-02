@@ -1,0 +1,15 @@
+=== REPROMPT B (Lock-Freedom Failure) — set ===
+
+The concurrent implementation given by you before fails when a thread stalls inside remove() after logical deletion — it is NOT lock-free.
+
+In a lock-free structure, at least one thread completes its operation (add/remove/contains) in a finite number of steps.
+
+Common causes:
+- Missing helping mechanism: threads encountering a marked-but-unlinked node must CAS-unlink it before continuing.
+- Physical cleanup not happening, blocking other threads.
+
+Fix the implementation above so stalled threads do not block others. Ensure proper CAS-based physical cleanup where any thread encountering a logically-deleted node helps unlink it.
+
+Reminder: add // Node has been marked immediately after logical deletion (success path only — not on CAS-failure paths, not after physical removal).
+Provide the complete fixed ConcurrentDataStructure.java.
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or long comments in the code.

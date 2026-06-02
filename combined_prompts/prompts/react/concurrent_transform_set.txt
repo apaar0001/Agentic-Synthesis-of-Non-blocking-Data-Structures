@@ -1,0 +1,63 @@
+=== CONCURRENT TRANSFORMATION PROMPT (Set Variant) ===
+
+Now convert the sequential implementation (JAVA code) you wrote above into a lock-free/non-blocking concurrent version using CAS.
+
+Output Requirement: Provide only the concurrent code implementation with the class name ConcurrentDataStructure. No explanations, no extra text.
+The ConcurrentDataStructure class MUST have a no-argument constructor (e.g., `public ConcurrentDataStructure()`).
+
+Lock-Free Implementation Instructions:
+No Locks Allowed
+Do not use synchronized blocks or ReentrantLock.
+
+CAS-based Updates:
+Use compareAndSet operations to atomically insert or delete nodes.
+Ensure retry loops handle contention when multiple threads attempt to modify the same pointer.
+
+Logical vs Physical Deletion:
+For deletion, first logically mark a node as deleted (using AtomicMarkableReference).
+Later, physically remove the node from the structure when it is safe to do so.
+IMPORTANT: When using AtomicMarkableReference, never use .get(null). If you want to get the reference without the mark, use .getReference(). Using .get(null) will cause a NullPointerException in Java.
+
+Linearizability Requirement
+Every operation (add, remove, contains) must appear as if it takes effect at a single instant.
+Readers must not return logically deleted nodes as valid.
+When traversing the structure in add(), remove(), or contains(), you MUST skip or physically remove (help) any logically deleted (marked) nodes. Do not use a marked node as a predecessor/parent (prev) for any CAS update. If you find a marked node, either use CAS to unlink it (helping) or skip to its successor/child and retry the search from the last valid node.
+If a node is already marked during a remove() operation, that operation should return false immediately.
+Ensure all retry loops have a clear path to progress and avoid "restart from root/head" patterns unless the structure has fundamentally changed.
+
+Structural Requirement:
+The concurrent Node class must have the pointers/fields as in the sequential Node class. Extra fields for concurrency (locks, flags, sentinel nodes, etc.) are allowed as long as they do not change the underlying sequential data structure.
+NOTE: The traversal or ordering logic of the concurrent code does not matter. We are only concerned with the structure of the node class.
+
+Task
+Transform the sequential implementation into a lock-free/non-blocking concurrent implementation in Java named ConcurrentDataStructure.
+Maintain lock-freedom (progress is guaranteed even if one thread is stalled).
+Ensure linearizability (operations must appear atomic and consistent).
+Avoid deadlocks and starvation by relying solely on atomic CAS loops.
+
+IMPORTANT:
+Across all operations (add, remove, and/or contains), identify the exact point at which a node's abstract state transitions from logically present to logically absent (for example, when a node becomes marked, flagged, or otherwise considered logically deleted), regardless of which method performs or observes this transition.
+This transition may occur in:
+
+1) remove() (typical case),
+2) contains() (e.g., observing and validating a marked node),
+3) or add() (e.g., detecting a logically deleted node during traversal).
+
+Immediately after the successful operation or observation that establishes this logical deletion state (and only on the success path), add the following comment:
+// Node has been marked
+Placement constraints:
+Do not place this comment before the logical-deletion transition, on CAS-failure or retry paths, after physical removal or pointer cleanup.
+The comment must correspond precisely to the linearization point at which the node is first considered logically deleted in the abstract data structure.
+NOTE (VERY IMPORTANT): Do not add any detailed explanations, extra text or comments in the code (except the above mentioned comment).
+
+API Contract (SetADT Interface):
+package com.example.utils;
+/***
+ * A simple set interface working with integer keys.
+ */
+public interface SetADT {
+\tboolean add(int key);
+\tboolean remove(int key);
+\tboolean contains(int key);
+}
+Ensure that the generated code implements the SetADT interface.\

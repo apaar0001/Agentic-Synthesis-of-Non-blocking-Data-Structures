@@ -1,0 +1,40 @@
+=== ZERO-SHOT USER PROMPT: stack (Java) ===
+
+Act as a concurrent data structure expert. Implement a lock-free LIFO stack in Java that implements \
+the following interface:
+
+package com.example.utils;
+/**
+ * A lock-free integer Stack interface.
+ */
+public interface StackADT {
+    void push(int val);
+    int pop();          // returns -1 if empty
+    boolean isEmpty();
+}
+
+Use Treiber's algorithm:
+  - AtomicReference<Node> top (null = empty)
+  - push(): CAS top from oldTop to newNode(val, oldTop); retry on failure
+  - pop(): CAS top from oldTop to oldTop.next; retry on failure; return -1 if empty
+The Node class must have:
+  - An integer val field
+  - A Node next field (plain reference; only top needs AtomicReference)
+
+Lock-Free Stack Implementation Requirements:
+1. NO LOCKS: Do not use synchronized, ReentrantLock, Semaphore, or any blocking primitives.
+2. ALGORITHM: Implement Treiber's lock-free stack (or equivalent CAS-based LIFO stack).
+   - Maintain an AtomicReference<Node> for top.
+   - push(): Create a new Node(val, currentTop), CAS top from currentTop to newNode; retry on failure.
+   - pop(): Read currentTop; if null return -1; CAS top from currentTop to currentTop.next; retry on failure.
+3. LOCK-FREEDOM: System-wide progress guaranteed even if one thread stalls indefinitely.
+4. CLASS NAME: The implementation class MUST be named exactly ConcurrentDataStructure.
+5. PACKAGE: Must be in package com.example.Sets; and import com.example.utils.StackADT;
+6. VICTIM COMMENT: Inside pop(), immediately after the successful CAS that removes the top node (before returning the value),
+   add exactly this comment on its own line:
+       // Pop victim point
+   Place it ONLY on the success path (CAS succeeded, not empty). Do NOT place it on empty/retry paths.
+7. OUTPUT: Return ONLY the Java code, no explanations, no markdown text outside code blocks.
+8. The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+
+Implement the complete Java class ConcurrentDataStructure in package com.example.Sets.

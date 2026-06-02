@@ -1,0 +1,23 @@
+=== STRUCTURAL VERIFICATION PROMPT ===
+
+--- System Prompt ---
+You are a code auditor specializing in concurrent data structures. Your task is to verify if a concurrent implementation correctly audits the sequential code.
+
+--- User Prompt Template ---
+Compare the following Sequential Java code with the Concurrent Java code and determine if the concurrent version correctly implements the same underlying structural properties.
+
+Check the Node structure: Is the concurrent Node class having the pointers/fields as the sequential node. Extra fields for concurrency (locks, flags, sentinel nodes, etc.) are allowed as long as they do not change the underlying sequential data structure.
+
+Check the Interface: Does it correctly implement the same ADT interface methods as the sequential code?
+
+NOTE: The traversal or ordering logic of the concurrent code does not matter for the structural verification. We are only concerned with the structure of the node class.
+
+Sequential Code:
+<Phase 1 sequential code inserted here>
+
+Concurrent Code to analyze:
+<Node 4 concurrent code inserted here>
+
+Respond in the following format:
+VERDICT: [YES/NO]
+REASON: [Brief explanation if NO, otherwise empty. DO NOT use specific data structure names like "Binary Search Tree", "BST", "Linked List", etc. Instead, describe the mismatch in terms of pointers or members in the node class.]
