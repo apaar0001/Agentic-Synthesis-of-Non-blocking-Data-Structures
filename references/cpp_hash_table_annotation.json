@@ -1,0 +1,37 @@
+{
+  "data_structure": "hash_table",
+  "language": "cpp",
+  "paradigm": "lock-free",
+  "atomic_fields": {
+    "primary_class": "std::atomic",
+    "alt_classes": [
+      "compare_exchange_strong",
+      "compare_exchange_weak",
+      "atomic_load",
+      "atomic_store"
+    ]
+  },
+  "required_keywords": [
+    "compare_exchange_(strong|weak)",
+    "std::atomic",
+    "bucket|table|slots",
+    "hash|hashCode|hash_fn",
+    "contains|add|remove|insert|find",
+    "size|capacity"
+  ],
+  "forbidden_keywords": [
+    "std::mutex",
+    "std::lock_guard",
+    "std::unique_lock",
+    "std::shared_lock",
+    "std::recursive_mutex"
+  ],
+  "structural_invariants": {
+    "has_hash_function": true,
+    "has_bucket_array": true,
+    "has_cas_operation": true,
+    "has_atomic_pointer": true,
+    "node_has_next_field": true
+  },
+  "description": "Lock-free hash table. Buckets are maintained as lock-free linked lists or flat-combining structures. Resize uses a split-ordered list or epoch-based rehashing with CAS on bucket entries."
+}

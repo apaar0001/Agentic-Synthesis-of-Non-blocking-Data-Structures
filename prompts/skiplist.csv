@@ -1,0 +1,117 @@
+name,text
+SkipList,"You are an expert Java code generation assistant. Your task is to implement a simple sequential data structure using a sequential, node-based approach. The final code must be written in Java.
+
+The main data structure class, which you will create, must implement the com.example.utils.SetADT interface provided below. This requires you to provide concrete implementations for the add(int key), remove(int key), and contains(int key) methods. The underlying structure will be a sequence of nodes, where each node holds an integer key and a reference to the next node.
+The generated class must include a no-argument constructor that initializes the data structure. Ensure the constructor does not take any parameters.
+SetADT Interface Definition
+
+The generated class must implement the following Java interface. Ensure the method signatures and return types match exactly.
+
+Java
+
+package com.example.utils;
+
+/***
+ * A simple set interface working with integer keys.
+ */
+public interface SetADT {
+    boolean add(int key);
+    boolean remove(int key);
+    boolean contains(int key);
+}
+Pseudocode for Implementation
+
+Use the following pseudocode as a reference for your Java implementation. The logic must correctly handle the boolean return types as specified by the SetADT interface (e.g., return false if trying to add a duplicate key).
+
+Code snippet
+MAX_LEVEL ← predefined maximum level (e.g., 16)
+P ← probability for random level generation (commonly 0.5)
+
+function randomLevel():
+    level ← 1
+    while random() < P and level < MAX_LEVEL:
+        level ← level + 1
+    return level
+structure Node:
+    key
+    forward[MAX_LEVEL]  // array of forward pointers
+structure SequentialDataStructure:
+    level ← 1                     // current highest level
+    header ← new Node(MAX_LEVEL)  // sentinel head node with all forward pointers = null
+function search(list, key):
+    current ← list.header
+    // move from top level down
+    for i from list.level down to 1:
+        while current.forward[i] ≠ null and current.forward[i].key < key:
+            current ← current.forward[i]
+
+    current ← current.forward[1]  // move to possible match
+
+    if current ≠ null and current.key = key:
+        return TRUE
+    else:
+        return FALSE
+function insert(list, key):
+    update[MAX_LEVEL]             // array to store last node visited at each level
+    current ← list.header
+
+    // Find insertion position
+    for i from list.level down to 1:
+        while current.forward[i] ≠ null and current.forward[i].key < key:
+            current ← current.forward[i]
+        update[i] ← current
+
+    current ← current.forward[1]
+
+    // Key already exists → do nothing
+    if current ≠ null and current.key = key:
+        return
+
+    //  Randomly determine node level
+    lvl ← randomLevel()
+
+    if lvl > list.level:
+        for i from list.level+1 to lvl:
+            update[i] ← list.header
+        list.level ← lvl
+
+    // Create new node
+    newNode ← new Node(lvl)
+    newNode.key ← key
+
+    //  Rewire forward pointers
+    for i from 1 to lvl:
+        newNode.forward[i] ← update[i].forward[i]
+        update[i].forward[i] ← newNode
+function delete(list, key):
+    update[MAX_LEVEL]
+    current ← list.header
+
+    // Find nodes to update
+    for i from list.level down to 1:
+        while current.forward[i] ≠ null and current.forward[i].key < key:
+            current ← current.forward[i]
+        update[i] ← current
+
+    current ← current.forward[1]
+
+    // Key found → remove
+    if current ≠ null and current.key = key:
+        for i from 1 to list.level:
+            if update[i].forward[i] ≠ current:
+                break
+            update[i].forward[i] ← current.forward[i]
+
+        // Adjust list level if necessary
+        while list.level > 1 and list.header.forward[list.level] = null:
+            list.level ← list.level - 1 
+
+Output Requirements
+
+The final generated Java code must not include the words ""Skip List"" or ""List"" in any class names, method names, variable names, or comments.
+
+The main class name must be SequentialDataStructure (mandatory).
+
+The SequentialDataStructure class MUST have a no-argument constructor (e.g., `public SequentialDataStructure()`).
+
+Output only the Java code — no additional text, explanations, or comments outside the code."

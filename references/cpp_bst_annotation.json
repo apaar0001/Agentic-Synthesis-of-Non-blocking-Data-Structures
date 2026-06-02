@@ -1,0 +1,38 @@
+{
+  "data_structure": "bst",
+  "language": "cpp",
+  "paradigm": "lock-free",
+  "atomic_fields": {
+    "primary_class": "std::atomic",
+    "alt_classes": [
+      "compare_exchange_strong",
+      "compare_exchange_weak",
+      "atomic_load",
+      "atomic_store"
+    ]
+  },
+  "required_keywords": [
+    "compare_exchange_(strong|weak)",
+    "std::atomic",
+    "left|right",
+    "insert|delete|search|find|contains",
+    "root",
+    "key"
+  ],
+  "forbidden_keywords": [
+    "std::mutex",
+    "std::lock_guard",
+    "std::unique_lock",
+    "std::shared_lock",
+    "std::recursive_mutex"
+  ],
+  "structural_invariants": {
+    "node_has_left_field": true,
+    "node_has_right_field": true,
+    "has_key_comparison_logic": true,
+    "find_does_physical_cleanup": true,
+    "has_cas_operation": true,
+    "has_atomic_pointer": true
+  },
+  "description": "Lock-free BST. Internal nodes hold keys; leaves hold values. Update descriptor objects (Info) facilitate multi-step rotation/deletion via CAS. Logical deletion precedes physical unlink."
+}

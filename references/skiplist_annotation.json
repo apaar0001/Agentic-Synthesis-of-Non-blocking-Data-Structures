@@ -1,0 +1,59 @@
+{
+    "ds_name": "skiplist",
+    "algorithm": "HLLM Lock-Free Skip List (Herlihy-Lev-Luchangco-Moir)",
+    "reference_paper": "Art of Multiprocessor Programming, Chapter 14",
+    "progress_guarantee": "LOCK_FREE",
+    "atomic_fields": {
+        "required": [
+            "next"
+        ],
+        "atomic_class": "AtomicMarkableReference",
+        "note": "Each level has its own AtomicMarkableReference: mark bit = logical deletion"
+    },
+    "aba_protection": {
+        "mechanism": "MARK_BIT_PER_LEVEL",
+        "java_class": "AtomicMarkableReference",
+        "note": "Logical deletion marks all levels top-down before physical removal"
+    },
+    "linearization_points": {
+        "add": "successful CAS at level 0 linking node into base list",
+        "remove": "successful CAS marking bottom-level next (false to true)",
+        "contains": "wait-free read: curr.key == key and not marked at level 0"
+    },
+    "required_keywords": [
+        "compareAndSet",
+        "AtomicMarkableReference",
+        "level|height|MAX_LEVEL",
+        "isMarked",
+        "head|sentinel"
+    ],
+    "forbidden_keywords": [
+        "synchronized",
+        "ReentrantLock",
+        "lock()",
+        "unlock()",
+        "left",
+        "right",
+        "children"
+    ],
+    "structural_invariants": {
+        "node_has_next_array_or_multi_level": true,
+        "has_level_or_height_field": true,
+        "has_sentinel_head": true,
+        "uses_mark_bit_for_deletion": true,
+        "find_does_physical_cleanup_at_each_level": true,
+        "contains_is_wait_free": true
+    },
+    "lp_comment_markers": [
+        "LINEARIZATION POINT",
+        "// LP:",
+        "linearization"
+    ],
+    "score_weights": {
+        "atomic_class_match": 0.20,
+        "required_keywords_match": 0.25,
+        "forbidden_keywords_absent": 0.15,
+        "structural_invariants": 0.25,
+        "lp_comments_present": 0.15
+    }
+}

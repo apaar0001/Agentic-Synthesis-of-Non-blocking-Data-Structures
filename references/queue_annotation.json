@@ -1,0 +1,40 @@
+{
+    "data_structure": "queue",
+    "paradigm": "lock-free",
+    "required_keywords": [
+        "enqueue",
+        "dequeue",
+        "isEmpty",
+        "compareAndSet",
+        "AtomicReference",
+        "QueueADT",
+        "Dequeue victim point"
+    ],
+    "forbidden_keywords": [
+        "synchronized",
+        "ReentrantLock",
+        "Lock",
+        "Semaphore",
+        "wait()",
+        "notify()",
+        "notifyAll()"
+    ],
+    "expected_primitives": [
+        "AtomicReference",
+        "compareAndSet"
+    ],
+    "expected_imports": [
+        "java.util.concurrent.atomic"
+    ],
+    "node_structure": {
+        "required_fields": [
+            "val",
+            "next"
+        ],
+        "field_types": {
+            "next": "AtomicReference"
+        }
+    },
+    "description": "Lock-free FIFO queue using Michael-Scott CAS-based linked queue. Head points to sentinel, tail advances via CAS. dequeue() CAS on head.next.",
+    "scoring_notes": "Layer C pool will be populated when reference implementations are collected."
+}

@@ -1,0 +1,98 @@
+"""
+cpp_react/workflow.py — LangGraph StateGraph for C++ ReAct Translation Pipeline
+==================================================================================
+
+Mirrors workflow.py for Java — 12-node graph with sequential + concurrent phases.
+
+Graph structure:
+  START → generate_seq → test_code_seq →[route]
+    pass → switch_to_concurrent → generate_con → verify_structural →[route]
+      pass → test_conc →[route]
+        all_pass → log_success → END
+        fail → prepare_reprompt_con → generate_con
+      fail → prepare_reprompt_structural → generate_con
+    fail → prepare_reprompt_seq → generate_seq
+    exhausted → log_failure → END
+"""
+from __future__ import annotations
+
+from langgraph.graph import StateGraph, START, END
+
+from .state import CppReactState
+from .generate_sequential import node_generate_seq
+from .test_sequential import node_test_code_seq
+from .generate_concurrent import node_generate_con
+from .verify_structural import node_verify_structural
+from .test_concurrent import node_test_conc
+from .prepare_reprompt import (
+    node_prepare_reprompt_seq,
+    node_prepare_reprompt_structural,
+    node_prepare_reprompt_con,
+    node_switch_to_concurrent,
+    node_log_success,
+    node_log_failure,
+)
+from .router import (
+    route_after_test_seq,
+    route_after_structural_verify,
+    route_after_test_conc,
+)
+
+
+def build_cpp_react_graph():
+    """Build and compile the C++ ReAct translation pipeline graph."""
+    graph = StateGraph(CppReactState)
+
+    # ── Register nodes ────────────────────────────────────────────────────────
+    graph.add_node("generate_seq", node_generate_seq)
+    graph.add_node("test_code_seq", node_test_code_seq)
+    graph.add_node("prepare_reprompt_seq", node_prepare_reprompt_seq)
+    graph.add_node("switch_to_concurrent", node_switch_to_concurrent)
+    graph.add_node("generate_con", node_generate_con)
+    graph.add_node("verify_structural", node_verify_structural)
+    graph.add_node("prepare_reprompt_structural", node_prepare_reprompt_structural)
+    graph.add_node("test_conc", node_test_conc)
+    graph.add_node("prepare_reprompt_con", node_prepare_reprompt_con)
+    graph.add_node("log_final", node_log_success)
+    graph.add_node("log_final_failure", node_log_failure)
+
+    # ── Sequential Phase ──────────────────────────────────────────────────────
+    graph.set_entry_point("generate_seq")
+    graph.add_edge("generate_seq", "test_code_seq")
+
+    graph.add_conditional_edges("test_code_seq", route_after_test_seq, {
+        "switch_to_concurrent": "switch_to_concurrent",
+        "prepare_reprompt_seq": "prepare_reprompt_seq",
+        "log_failure": "log_final_failure",
+    })
+    graph.add_edge("prepare_reprompt_seq", "generate_seq")
+
+    # ── Concurrent Phase ──────────────────────────────────────────────────────
+    graph.add_edge("switch_to_concurrent", "generate_con")
+    graph.add_edge("generate_con", "verify_structural")
+
+    graph.add_conditional_edges("verify_structural", route_after_structural_verify, {
+        "test_conc": "test_conc",
+        "prepare_reprompt_structural": "prepare_reprompt_structural",
+        "log_failure": "log_final_failure",
+    })
+    graph.add_edge("prepare_reprompt_structural", "generate_con")
+
+    graph.add_conditional_edges("test_conc", route_after_test_conc, {
+        "prepare_reprompt_con": "prepare_reprompt_con",
+        "log_success": "log_final",
+        "log_failure": "log_final_failure",
+    })
+    graph.add_edge("prepare_reprompt_con", "generate_con")
+
+    # ── Terminal edges ────────────────────────────────────────────────────────
+    graph.add_edge("log_final", END)
+    graph.add_edge("log_final_failure", END)
+
+    return graph.compile()
+
+
+__all__ = [
+    "CppReactState",
+    "build_cpp_react_graph",
+]
